@@ -1,0 +1,30 @@
+function getSheetDataAsJson(spreadsheetId) {
+  var sheet = SpreadsheetApp.openById(spreadsheetId).getActiveSheet();
+  var data = sheet.getDataRange().getValues();
+
+  var jsonData = [];
+  var headers = data[0];
+  for (var i = 1; i < data.length; i++) {
+    var row = data[i];
+    var item = {};
+    for (var j = 0; j < headers.length; j++) {
+      item[headers[j]] = row[j];
+    }
+    jsonData.push(item);
+  }
+
+  return JSON.stringify(jsonData);
+}
+
+function createEndpointForSpreadsheet(spreadsheetId) {
+  return ContentService.createTextOutput(getSheetDataAsJson(spreadsheetId)).setMimeType(ContentService.MimeType.JSON);
+}
+
+function doGet(e) {
+  var spreadsheetId = e.parameter.id;
+  if (!spreadsheetId) {
+    return ContentService.createTextOutput("Please provide a valid spreadsheet ID.").setMimeType(ContentService.MimeType.TEXT);
+  } else {
+    return createEndpointForSpreadsheet(spreadsheetId);
+  }
+}
