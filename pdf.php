@@ -15,7 +15,8 @@ foreach ($data as $ent) {
 $score = (array_column($data,'Score')) ? array_column($data,'Score') : array(0) ; 
 $count = count($score);
 $avg = $sum/$count;
-
+$prodi = (array_column($data,'Prodi'));
+$prodii = array_unique($prodi);
 $avgg =  number_format((float)$avg,2,'.','');
 $max =  max($score);
 $min = min($score);
@@ -32,20 +33,20 @@ class PDF extends FPDF
     {
         if ($this->data !== null && count($this->data) > 0) {
         $header = array_keys($this->data[0]);
-        $sel_columns = array('Score','Nama Lengkap','Prodi', 'NIM');
+        $sel_columns = array('Score','Nama Lengkap','Prodi', 'NIM','Tingkat');
         $this->SetLeftMargin(15);
         $this->SetRightMargin(45);
         $this->setFont('Times', 'B', 12); 
         $this->SetFillColor(150, 150, 150);
         $this->Cell(20, 10, 'No', 1, 0, 'C', true);
-        $width = array(20, 80, 40, 40, 20);
+        $width = array(20, 90, 40, 30, 20);
         foreach($header as $col) {
             if(in_array($col, $sel_columns))
             {
                 $key = array_search($col, $sel_columns);
                 if($key !== null)
                 {
-                    $this->Cell($width[$key], 10, $col, 1, 0, 'C', true);
+                    $this->Cell($width[$key], 7, $col, 1, 0, 'C', true);
                 }
             }
                 
@@ -54,7 +55,6 @@ class PDF extends FPDF
         $this->Ln();
         }
     }
-
     function BasicTable($header, $data, $columns)
     {
         $i = 1;
@@ -67,7 +67,7 @@ class PDF extends FPDF
         // $this->Cell(40, 7, 'Score', 1, 0, 'C');
         // $this->Cell(40, 7, 'Nama Lengkap', 1, 0, 'C');
         // $this->Cell(40, 7, 'Nim', 1, 0, 'C');
-        $width = array(20, 80, 40, 40, 20);
+        $width = array(20, 90, 40, 30, 20);
         foreach ($header as $col) {
             if (in_array($col, $columns)) {
                 $key = array_search($col, $columns);
@@ -98,12 +98,21 @@ class PDF extends FPDF
             $i++;
         }
     }
+
+    function prodi($prod)
+    {
+        for($i=1; $i <= count($prod); $i++)
+        {
+            $this->Cell(5, 6, $i.". ");
+            $this->Cell(40, 6, $prod[$i]);
+            $this->Ln();
+        }
+    }
 }
 $pdf = new PDF('L','mm','A4');
 $pdf->addPage();
 $pdf->setFont('Times', 'B', 18);
 $pdf->cell(295,10, $judul,0,1, 'C');
-$pdf->setFont('Times', '', 12);
 $pdf->data = $data;
 $header = array_keys($data[0]);
 $sel_columns = array('Score','Nama Lengkap', 'Prodi','NIM','Tingkat');
@@ -112,7 +121,13 @@ $pdf->Ln(6);
 $pdf->Ln(6);
 $pdf->Ln(6);
 $pdf->setFont('Times', 'B', 12);
-$pdf->cell(100,10, $judul,0,1);
+$pdf->cell(50,10, $judul,0,1);
+$pdf->Ln(6);
+$pdf->cell(40,10, 'Prodi');
+$pdf->cell(5,10, ':');
+$pdf->Ln(6);
+$pdf->prodi($prodii);
+$pdf->Ln(6);
 $pdf->setFont('Times', '', 12);
 $pdf->cell(40,10, 'Rata-Rata');
 $pdf->cell(5,10, ':');

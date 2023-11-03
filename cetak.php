@@ -33,9 +33,9 @@ if (isset($_POST['pilih'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap4.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
-    <title>Document</title>
+    <title>Aplikasi Cetak Hasil Ujian</title>
 </head>
-<body>
+<body  style="background:radial-gradient(#c1dcf5, #98c8f5); background-repeat: no-repeat;">
     <div class="container d-flex flex-column justify-content-center align-items-center" style="min-height:100vh">
     <?php if(!isset($data))
     {
@@ -63,10 +63,10 @@ if (isset($_POST['pilih'])) {
         <tbody>
                 <?php $i= 1; foreach($data as $dataa) {
                 ?>
-                <tr <?php echo ($dataa['Score'] >56) ? "" : "style='background:rgb(255, 100, 100)'" ;?>>
+                <tr <?php echo ($dataa['Score'] >56) ? "style='background:rgb(255, 255, 255)'" : "style='background:rgb(255, 100, 100)'" ;?>>
                     <td><?= $i++ ?></td>
-                    <td><?= $dataa['Nim']?></td>
-                    <td><?= $dataa['Nama Mahasiswa']?></td>
+                    <td><?= $dataa['NIM']?></td>
+                    <td><?= $dataa['Nama Lengkap']?></td>
                     <td><?= $dataa['Prodi']?></td>
                     <td><?= $dataa['Tingkat']?></td>
                     <td><?= $dataa['Score']?></td>
