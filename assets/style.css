@@ -7,7 +7,8 @@ body {
     overflow-x: hidden;
   }
   .nav-bar {
-    padding:10px;
+    padding:15px;
+    background: #999999;
   }
   #wrapper {
     padding-left: 0;
@@ -30,7 +31,7 @@ body {
     top:0;
     margin-left: -250px;
     overflow-y: auto;
-    background: #000;
+    background: #2c2c2c;
     -webkit-transition: all 0.5s ease;
     -moz-transition: all 0.5s ease;
     -o-transition: all 0.5s ease;
@@ -80,7 +81,7 @@ body {
     color: #fff;
     background: rgba(255, 255, 255, 0.2);
   }
-  .sidebar-nav li .active {
+  .active {
     color: #fff;
     background: rgba(255, 255, 255, 0.2);
   }
@@ -125,4 +126,9 @@ body {
       position: relative;
       margin-right: 0;
     }
+  }
+
+  .footer {
+    position:absolute;
+    bottom: 0 ;
   }

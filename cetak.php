@@ -7,7 +7,7 @@ if (isset($_POST['pilih'])) {
 
     $sheets = explode('/' , $_POST['makul']);
     $sheetsId = $sheets[5];
-    $judul = $_POST['judul'];
+    $judul = filter_var($_POST['judul'], FILTER_SANITIZE_STRING);
     $endPointUrl = "https://script.google.com/macros/s/".$scriptId."/exec?id=".$sheetsId;
     try {
         $response = @file_get_contents($endPointUrl);
@@ -44,6 +44,7 @@ if (isset($_POST['pilih'])) {
     }
     else {
     ?>
+        <h2><?php echo $judul ?></h2>
         <div class="w-75 d-flex justify-content-center">
             <a href="pdf.php?id=<?php echo $sheetsId ?>&judul=<?php echo $judul ?>" class="btn btn-success mt-3 mr-3" target="__blank"> Cetak PDF</a>
             <a href='index.php' class='btn btn-secondary mt-3'>Kembali</a>
@@ -90,7 +91,7 @@ if (isset($_POST['pilih'])) {
         $lulus = 0;
         $tidakLulus = 0;
         foreach ($data as $item) {
-            ($item['Score'] > 56) ? $lulus++ : $tidakLulus++ ;
+            ($item['Score'] > 55) ? $lulus++ : $tidakLulus++ ;
         }   
     ?>
     <table class="table w-25 table-border">
