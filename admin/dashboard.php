@@ -63,20 +63,18 @@ $sid = $prd['id_periode'];
                     <a href="dashboard.php" class="menu-link">Dashboard</a>
                 </li>
                 <li>
-                    <a href="?pg=makul" class="menu-link">Tambah Test</a>
+                    <a href="?pg=makul" class="menu-link">Test</a>
                 </li>
-                <li>
-                    <a href="?pg=nilai" class="menu-link">Nilai</a>
-                </li>
+               
                 <li>
                 <a class="menu-drop dropdown-toggle menu-link" href="#menu-transkrip" data-toggle="collapse" aria-expanded="false">
                         Transkrip
                     </a>
                     <ul class="collapse p-0 bg-dark" id="menu-transkrip" type="none" style="border-right:'solid 3px red'">
-                        <!-- <li class="nav-item "><a class="menu-link sub-menu" href="?pg=periode">Periode</a></li> -->
                         <li class="nav-item"><a class="menu-link sub-menu" href="?pg=transkrip&act=nilai">Rekap Nilai</a></li>
                         <li class="nav-item"><a class="menu-link sub-menu" href="?pg=transkrip&act=de">Rekap D & E</a></li>
-                        <li class="nav-item"><a class="menu-link sub-menu" href="?pg=transkrip&act=nmakul">Rekap Per Matakuliah</a></li>
+                        <li class="nav-item"><a class="menu-link sub-menu" href="?pg=transkrip&act=nol">Validasi Nilai 0</a></li>
+                        <!-- <li class="nav-item"><a class="menu-link sub-menu" href="?pg=transkrip&act=nmakul">Rekap Per Matakuliah</a></li> -->
                     </ul>
                 </li>
                 <li>
@@ -125,52 +123,28 @@ $sid = $prd['id_periode'];
                     {
                         $info = 'tidak ada file dipilih';
                         $kelass='';
-                        if(isset($_POST['kelas']) || isset($_GET['idt']))
+                        if(isset($_GET['idt']))
                         {   
-                            $kelass = isset($_GET['idk'])? $_GET['idk'] :$_POST['kelas']; 
+                            $kelass =$_GET['idk']; 
+                            $idmakul = $_GET['idm'];
                             $sqlmakul = "SELECT ttest.id_test, ttest.status, ttest.makul, ttest.dosen,
-                            tkelas.NamaKelas, tdosen.Nama, tmakul.NamaMakul
+                            tkelas.NamaKelas,tmakul.NamaMakul, ttest.id_kelas
                             from ttest
                             left join tkelas on tkelas.IdKelas = ttest.id_kelas
                             left join tdosen on tdosen.IdDosen = ttest.dosen
-                            left join tmakul on tmakul.IdMakul = ttest.makul where ttest.id_periode='$sid' and ttest.id_kelas='$kelass' and ttest.status=0";
+                            left join tmakul on tmakul.IdMakul = ttest.makul where ttest.id_periode='$sid' and ttest.id_kelas='$kelass' and ttest.makul = '$idmakul' and ttest.status=0";
                             $querymakul = mysqli_query($connect, $sqlmakul);
-                            $makuls = "
-                            <form action='' method='post' enctype='multipart/form-data'>
-                                    <div class='form-group'>
-                                    <label for=''>Pilih Mata Kuliah</label>
-                                        <select name='makul'  class='form-control form-control-sm' id='selectMakul'required>
-                                        <option value=''>--</option>";                    
-                            while($makul = mysqli_fetch_array($querymakul))
-                            {   $selected = ($makul['id_test']==$_GET['idt']) ? 'selected' : '';
-                                $makuls .= "<option value='$makul[id_test]' $selected>$makul[NamaMakul]</option>";
-                            }                        
-                            $makuls .= "</select>
-                            <input type='hidden' name = 'id_kelas' value='$kelass'>
-                            <input type='hidden' name = 'id_makul' id='id_makul'>
-                            
-                            
-                                        
-                                    </div>
-                                    <div class='form-group'>
-                                        <label for=''>Import File CSV</label>
-                                        <input type='file' name='imp_csv' class='form-control form-control-sm' required>
-                                    </div>
-                                </div>
-                                <div class='card-footer text-center'>
-                                    <input type='submit' name='import_csv' value='import' class='btn btn-sm btn-primary '>
-                                </div>
-                            </form>";
-                        }
-                        else
-                        {
-                            $makuls = "";
+                            $makul = mysqli_fetch_array($querymakul);
                         }
                         if(isset($_POST['import_csv'])) 
                         {
+                            unset($_SESSION['nilai']);
+                           unset($_SESSION['idTest']);
+                           unset($_SESSION['idKelas']);
+                           unset($_SESSION['idmakul']);
                             $dataNilai = array();
                             $idKelas = $_POST['id_kelas'];
-                            $idTest = $_POST['makul'];
+                            $idTest = $_POST['id_test'];
                             $idmakul = $_POST['id_makul'];
                             $mhs = array();
                             $mhsQ = mysqli_query($connect,"SELECT tmahasiswa.*,tkelas.NamaKelas from tmahasiswa left join tkelas on tkelas.IdKelas = tmahasiswa.IdKelas where tmahasiswa.IdKelas = '$idKelas'");
@@ -197,7 +171,7 @@ $sid = $prd['id_periode'];
                                 $csvfile = fopen($_FILES['imp_csv']['tmp_name'], 'r');
                                 $header = fgetcsv($csvfile, 10000, ',');
                                 $nimi = array_search('nim', array_map('strtolower', $header));
-                                $nilaii = array_search('total skor', array_map('strtolower', $header));
+                                $nilaii = array_search('total score', array_map('strtolower', $header));
                                 if($nimii !== false || $nilaii !== false)
                                 {
 
@@ -235,8 +209,8 @@ $sid = $prd['id_periode'];
                             $nim = $nli['nim'];
                             $score = $nli['score'];
                             $query = mysqli_query($connect,"INSERT into ttranskrip_nilai values ('','$expId','$expkelas','$sid','$expmakul','$nim','$score')");
-                           echo ($query) ? "<script>alert('Berhasil Export Data'); window.location = 'dashboard.php?pg=nilai';</script>" 
-                                            : "<script>alert('Gagal Export Data'); window.location = 'dashboard.php?pg=nilai';</script>";
+                           echo ($query) ? "<script>alert('Berhasil Export Data'); window.location = 'dashboard.php?pg=makul&idk=$expkelas';</script>" 
+                                            : "<script>alert('Gagal Export Data'); window.location = 'dashboard.php?pg=makul&idk=$expkelas';</script>";
                            }
                            unset($_SESSION['nilai']);
                            unset($_SESSION['idTest']);
@@ -251,20 +225,30 @@ $sid = $prd['id_periode'];
                             <div class="card m-auto" style="width:23rem;">
                                 <div class="card-body">
                                     <div class="form-group">
-                                        <form action="" method="post">
-                                            <label for="">Pilih Kelas</label>
-                                            <select name="kelas" id="makuls" class="form-control form-control-sm" onchange="this.form.submit()" required>
-                                                <option>--</option>
-                                                <?php
-                                                $kelasQ= mysqli_query($connect,"SELECT * from tkelas");
-                                                while($kelas = mysqli_fetch_array($kelasQ))
-                                                {
-                                                    echo "<option value='$kelas[IdKelas]'>$kelas[NamaKelas]</option>";
-                                                }
-                                                ?>
-                                            </select>
-                                        </form>
-                                                <?php echo $makuls ?>
+                                    <form action='' method='post' enctype='multipart/form-data'>
+                                        <input type="hidden" name="id_test" value="<?php echo $makul['id_test'] ?>">
+                                    <div class='form-group'>
+                                        <label for=''>Jurusan - Tingkat</label>
+                                        <input type="text" name='id_makul' value ="<?php echo $makul['NamaKelas'] ?>" class="form-control form-control-sm" readonly>
+                                        <input type='hidden' name = 'id_kelas' value="<?php echo $makul['id_kelas'] ?>">    
+                                    </div>
+                                    <div class='form-group'>
+                                        <label for=''>Mata Kuliah</label>
+                                        <input type="text" name='kelas' value ="<?php echo $makul['NamaMakul'] ?>" class="form-control form-control-sm" readonly>
+                                        <input type='hidden' name='id_makul' value="<?php echo $makul['makul'] ?>">    
+                                    </div>
+                                    <div class='form-group'>
+                                        <label for=''>Import File CSV</label>
+                                        <input type='file' name='imp_csv' class='form-control form-control-sm' required>
+                                    </div>
+                                </div>
+                                <div class='card-footer text-center'>
+                                    <input type='submit' name='import_csv' value='import' class='btn btn-sm btn-primary '>
+                                    <a href="javascript:history.go(-1)" class="btn btn-sm btn-secondary">Kembali</a>
+                                </div>
+                            </form>      
+                                        
+                                               
                                         </div>
                                     </div>
                             </div>
@@ -327,15 +311,15 @@ $sid = $prd['id_periode'];
                 case "makul":
                     if(!isset($_GET['act']))
                     {
-                        if(isset($_POST['kelas']))
+                        if(isset($_POST['kelas']) || isset($_GET['idk']))
                         {
-                            $kelass = $_POST['kelas'];
+                            $kelass =(isset($_GET['idk'])) ?$_GET['idk'] :$_POST['kelas'];
                         $sql = "SELECT ttest.id_test, ttest.status, ttest.makul, ttest.dosen, ttest.id_kelas,
                         tkelas.NamaKelas, tdosen.Nama, tmakul.NamaMakul
                         from ttest
                         left join tkelas on tkelas.IdKelas = ttest.id_kelas
                         left join tdosen on tdosen.IdDosen = ttest.dosen
-                        left join tmakul on tmakul.IdMakul = ttest.makul where ttest.id_periode='$sid' and ttest.id_kelas = '$kelass'";
+                        left join tmakul on tmakul.IdMakul = ttest.makul where ttest.id_periode='$sid' and ttest.id_kelas = '$kelass' order by ttest.status ASC";
                         }
                         else
                         {
@@ -344,7 +328,7 @@ $sid = $prd['id_periode'];
                         from ttest
                         left join tkelas on tkelas.IdKelas = ttest.id_kelas
                         left join tdosen on tdosen.IdDosen = ttest.dosen
-                        left join tmakul on tmakul.IdMakul = ttest.makul where ttest.id_periode='$sid'";    
+                        left join tmakul on tmakul.IdMakul = ttest.makul where ttest.id_periode='$sid' order by ttest.status ASC";    
                         }
                         $query = mysqli_query($connect, $sql);
 
@@ -361,7 +345,7 @@ $sid = $prd['id_periode'];
                                 <select name="kelas" id="makuls" class='form-control form-control-sm mb-3' onchange='this.form.submit()'>
                                     <option value="">--</option>
                                     <?php
-                                    $kelasQ = mysqli_query($connect, "SELECT * from tkelas order by NamaKelas ASC");
+                                    $kelasQ = mysqli_query($connect, "SELECT * from tkelas");
                                     while($kelas = mysqli_fetch_array($kelasQ))
                                     {
                                         echo "<option value='$kelas[IdKelas]'>$kelas[NamaKelas]</option>";
@@ -369,7 +353,7 @@ $sid = $prd['id_periode'];
                                     ?>
                                 </select>
                             </form>
-                            <table class="table table-bordered w-100">
+                            <table class="table table-bordered w-100" id="tabel-nilai">
                                 <thead>
                                     <tr>
                                         <th>No.</th>
@@ -393,9 +377,11 @@ $sid = $prd['id_periode'];
                                             <!-- <td><?php echo $row['Nama'] ?></td> -->
                                             <td><?php echo ($row['status']==0)? "<a href='?pg=makul&act=edit&id=$row[id_test]' class='btn btn-sm btn-warning'>Edit</a>
                                                 <a onclick ='return confirm(`Yakin Hapus Data $row[NamaMakul]`)' href='?pg=makul&act=hapus&id=$row[id_test]' class='btn btn-sm btn-danger'>Hapus</a>
-                                                <a href = '?pg=nilai&idt=$row[id_test]&idk=$row[id_kelas]' class='btn btn-sm btn-info'>Upload Data</a>" 
+                                                <a href = '?pg=nilai&idt=$row[id_test]&idk=$row[id_kelas]&idm=$row[makul]' class='btn btn-sm btn-info'>Upload Data</a>" 
                                                 
-                                                : "Data Sudah Diupload" ?>
+                                                : "<a onclick='return confirm(`yakin hapus data $row[NamaMakul] ?`)' href='action.php?delt=$row[id_test]' class='btn btn-sm btn-secondary'>Hapus Data Tes</a>
+                                                <a href='cetak_mkl.php?tid=$row[id_test]&idk=$row[id_kelas]' class='btn btn-sm btn-light' target='__blank'>Cetak Data</a>
+                                                " ?>
                                             </td>
                                         </tr>
                                     <?php
@@ -701,6 +687,7 @@ $sid = $prd['id_periode'];
                         <h3>List Data Mahasiswa</h3>
                         <?php echo $msg ?>
                         <div class="wrap"> 
+                        <a href="?pg=mahasiswa&act=tambah" class="btn btn-sm btn-info">Tambah Manual Mahasiswa</a>
                         <a href="?pg=mahasiswa&act=import" class="btn btn-sm btn-primary">Import Mahasiswa</a>
                         <a href="?pg=mahasiswa&act=migrasi" class="btn btn-sm btn-success">Migrasi Mahasiswa</a>
                         <a href="?pg=mahasiswa&act=mhapus" class="btn btn-sm btn-danger">Hapus Massal Mahasiswa</a>
@@ -885,6 +872,58 @@ $sid = $prd['id_periode'];
                         </div>
                         <?php
                     }
+                    elseif($_GET['act']=="tambah")
+                    {
+                        
+                        ?>
+                        <div class="card m-auto" style="width:30rem">
+                        <div class="card-header"><h4 class="text-center">Edit Data Mahasiswa</h4></div>
+                        <form action="action.php" method="post">
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label for="">NIM :</label>
+                                <input type="text" name="nim" class="form-control form-control-sm">
+                            </div>
+                            <div class="form-group">
+                                <label for="">Nama Mahasiswa :</label>
+                                <input type="text" name="nama" class="form-control form-control-sm">
+                            </div>
+                            <div class="form-group">
+                                <label for="">Pilih Jurusan</label>
+                                <select name="jurusan" id="" class='form-control form-control-sm'>
+                                    <option value="">--</option>
+                                    <?php
+                                    $jurusanQ = mysqli_query($connect, "SELECT * from tjurusan");
+                                    while($jurusan = mysqli_fetch_array($jurusanQ))
+                                    {
+                                        echo "<option value=$jurusan[IdJurusan]>$jurusan[NamaJurusan]</option>";
+                                    }
+                                    ?>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="">Pilih Kelas</label>
+                                <select name="kelas" id="" class='form-control form-control-sm'>
+                                    <option value="">--</option>
+                                    <?php
+                                    $jurusanQ = mysqli_query($connect, "SELECT * from tkelas");
+                                    while($jurusan = mysqli_fetch_array($jurusanQ))
+                                    {
+                                        $selected = ($mhs['IdKelas']==$jurusan['IdKelas']) ? 'selected' : '';
+                                        echo "<option value=$jurusan[IdKelas] $selected>$jurusan[NamaKelas]</option>";
+                                    }
+                                    ?>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="card-footer text-center">
+                            <input type="submit" name='tambah_mhs' class='btn btn-sm btn-success' value='Tambah'>
+                            <a href="javascript:history.go(-1)" class='btn btn-sm btn-secondary'>Kembali</a>
+                        </div>
+                        </form>
+                        </div>
+                            <?php
+                                }
                     elseif($_GET['act']=="edit")
                     {
                         $idm = $_GET['mid'];
@@ -1123,17 +1162,40 @@ $sid = $prd['id_periode'];
                     {
                         $kelasQ = mysqli_query($connect, "SELECT * from tkelas");
                         $cetak="";
+                        $ket = "";
                         if(isset($_POST['kelas']))
                         {
                             $kelas = $_POST['kelas'];
-                            $trans = array();
+                            $trans = mysqli_num_rows(mysqli_query($connect,"SELECT * from ttranskrip_nilai where id_kelas = '$kelas' and id_periode = '$sid'"));
+                            $mhs = mysqli_num_rows(mysqli_query($connect,"SELECT * from tmahasiswa where IdKelas = '$kelas'"));
+                            $test = mysqli_num_rows(mysqli_query($connect,"SELECT * from ttest where id_kelas = '$kelas' and id_periode = '$sid'"));
+                            if($trans > 0)
+                            {
+                                $tottrans = $trans / $test;
+                                if($tottrans !== $mhs)
+                                {
+                                    $ket="<div class='alert alert-warning alert-sm'>Masih Terdapat Data Nilai Mahasiswa yang belum terisi, silahkan lengkapi di menu <b>Validasi Nilai 0</b></div>";
+                                }
+                                else
+                                {
+                                    $ket = "<div class='alert alert-sm alert-info'>Semua Data Nilai Mahasiswa telah Divalidasi</div>";
+                                }
+
+                            }
+                            else
+                            {
+                                $ket = "<div class='alert alert-sm alert-secondary'>Belum Ada Data Nilai Yang Diinput Untuk Kelas berikut</div>";
+                            }
+                            
                             $cetak = "<div class='card-footer text-center'>
                                             <a href='cetak_trans.php?idk=$kelas&pid=$sid' class='btn btn-sm btn-danger' target='_blank'>Cetak PDF</a>
                                             <a href='excel_trans.php?idk=$kelas&pid=$sid' class='btn btn-sm btn-success' target='_blank'>Download Excel</a>
                                         </div>";
                         }
+                        
                         ?>
                         <div class="container d-flex flex-column justify-content-center align-items-center">
+                            <?= $ket ?>
                             <div class="card" style="width:23rem">
                                 <div class="card-header">
                                     <h3>Rekap Nilai Mahasiswa</h3>
@@ -1147,7 +1209,7 @@ $sid = $prd['id_periode'];
                                             <?php
                                                 while($kelas = mysqli_fetch_array($kelasQ))
                                                 {
-                                                    $selected = (isset($_POST['kelas']) && $_POST['kelas']==$kelas['idKelas'])? "selected" :"";
+                                                    $selected = (isset($_POST['kelas']) && $_POST['kelas'] == $kelas['IdKelas']) ? 'selected' :'';
                                                     echo "<option value='$kelas[IdKelas]' $selected>$kelas[NamaKelas]</option>";
                                                 }
                                             ?>
@@ -1165,16 +1227,9 @@ $sid = $prd['id_periode'];
                     {
                         $kelasQ = mysqli_query($connect, "SELECT * from tkelas");
                         $cetak="";
-                        if(isset($_POST['kelas']))
+                        if(isset($_POST['kelas']) || isset($_GET['idk']))
                         {
-                            $kelas = $_POST['kelas'];
-                            $trans = array();
-                            // $transQ = mysqli_query($connect,"SELECT * from ttranskrip_nilai where id_kelas = '$kelas' and id_periode = '$sid'");
-                            // while($transarr = mysqli_fetch_array($transQ)){
-                            //     $trans[] = $transarr;
-                            // }
-                            // $_SESSION['trans'] = $trans;
-
+                            $kelas = isset($_GET['idk']) ?$_GET['idk'] :$_POST['kelas'];
                             $cetak = "<div class='card-footer text-center'>
                                             <a href='cetak_de.php?idk=$kelas&pid=$sid' class='btn btn-sm btn-danger' target='_blank'>Cetak PDF</a>
                                             <a href='excel_de.php?idk=$kelas&pid=$sid' class='btn btn-sm btn-success' target='_blank'>Download Excel</a>
@@ -1209,6 +1264,85 @@ $sid = $prd['id_periode'];
                         </div>
                         <?php
                     }
+                    if($_GET['act']=="nol")
+                    {
+                        if(isset($_POST['kelas']))
+                        {
+                            $kelas = $_POST['kelas'];
+                            $testQ = mysqli_query($connect, "SELECT * from ttest where id_kelas = '$kelas' and id_periode = '$sid'");
+                            $totaltest =  mysqli_num_rows($testQ);
+                            $mhsQ = mysqli_query($connect, "SELECT * from tmahasiswa where IdKelas = '$kelas'");        
+                        }
+                        ?>
+                        <h3>Validasi Mahasiswa Yang Tidak Ikut Ujian</h3>
+                        <form action="" method="post">
+                            <div class="form-inline">
+                                <label for="">Pilih Kelas</label>
+                                <select name="kelas" id="" class='form-control form-control-sm ml-3' onchange="this.form.submit()">
+                                            <option value="">--</option>
+                                            <?php
+                                                $kelasQ = mysqli_query($connect, "SELECT * from tkelas");
+                                                while($kelas = mysqli_fetch_array($kelasQ))
+                                                {
+                                                        $selected = (isset($_POST['kelas']) && $_POST['kelas'] == $kelas['IdKelas']) ? 'selected' :'';
+                                                    echo "<option value='$kelas[IdKelas]' $selected>$kelas[NamaKelas]</option>";
+                                                }
+                                            ?>
+                                </select>
+                            </div>
+                            <table class="table table-sm table-bordered" id=<?php echo ($mhsQ) ?"tabel-nilai" : "" ?>>
+                                <thead>
+                                    <th>No.</th>
+                                    <th>NIM</th>
+                                    <th>Nama</th>
+                                    <th>Total Test</th>
+                                    <th>Test Yang Diikuti</th>
+                                    <th>Aksi</th>
+                                </thead>
+                                <tbody>
+                                    
+                                    <?php
+                                    if(!$mhsQ)
+                                    {
+                                        echo "<tr>
+                                                <td>Tidak Ada Data</td>
+                                        </tr>";
+                                    }
+                                    else
+                                    {
+                                    $no = 1;
+                                    while($mhs = mysqli_fetch_array($mhsQ)) {
+                                        $nim = $mhs['NIM'];
+                                        $nama = $mhs['NamaMahasiswa'];
+                                        $id = $mhs['IdMahasiswa'];
+                                        $kelas = $mhs['IdKelas'];
+                                        $transQ = mysqli_query($connect, "SELECT * from ttranskrip_nilai  where nim = '$nim' and id_periode = '$sid'");
+                                        $trans = mysqli_fetch_array($transQ);
+                                        $totaltrans = mysqli_num_rows($transQ);
+                                        if($totaltrans!= $totaltest)
+                                        {
+                                        ?>
+                                        <tr>
+                                            <td><?= $no++ ?></td>
+                                            <td><?= $nim ?></td>
+                                            <td><?= $nama ?></td>
+                                            <td><?= $totaltest ?></td>
+                                            <td><?= $totaltrans ?></td>
+                                            <td><a href="action.php?valid=v&idm=<?= $nim ?>&idk=<?= $kelas ?>&pid=<?= $sid ?>" class="btn btn-sm btn-info">Validasi</a>
+                                            <a href="action.php?valid=h&idm=<?= $nim ?>&idk=<?= $kelas ?>&pid=<?= $sid ?>" class="btn btn-sm btn-danger">Hapus Mahasiswa</a></td>
+                                        </tr>
+                                        <?php
+                                        }
+                                    }
+                                        
+                                    }
+                                    ?>
+                                </tbody>
+                            </table>    
+                        </form>
+                        <?php
+                    }
+                    
                     
                 break;
  

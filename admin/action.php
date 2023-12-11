@@ -10,8 +10,8 @@ if(isset($_POST['tambah_test']))
     $sheets= filter_var($_POST['sheets'], FILTER_SANITIZE_STRING);
     $sql = "INSERT into ttest values ('','$makul','$jurusan','','0','$sid')";
     $query = mysqli_query($connect, $sql);
-    echo ($query) ? "<script>alert('Berhasil Tambah Data'); window.location = 'dashboard.php?pg=makul';</script>" 
-                  : "<script>alert('Gagal Tambah Data'); window.location = 'dashboard.php?pg=makul';</script>";
+    echo ($query) ? "<script>alert('Berhasil Tambah Data'); window.history.go(-1);</script>" 
+                  : "<script>alert('Gagal Tambah Data'); window.history.go(-1)';</script>";
 }
 if(isset($_POST['update_test']))
 {
@@ -162,6 +162,19 @@ if(isset($_POST['edit_mhs']))
     echo ($query) ? "<script>alert('Berhasil Update Data Mahasiswa'); window.location = 'dashboard.php?pg=mahasiswa&msg=editms';</script>" 
     : "<script>alert('Gagal Update Data Mahasiswa'); window.location = 'dashboard.php?pg=mahasiswa&msg=editmg';</script>";
 }
+if(isset($_POST['tambah_mhs']))
+{
+    
+    $idm = filter_var($_POST['idm'], FILTER_SANITIZE_STRING);
+    $nim = filter_var($_POST['nim'], FILTER_SANITIZE_STRING);
+    $nama = filter_var($_POST['nama'], FILTER_SANITIZE_STRING);
+    $jurusan = filter_var($_POST['jurusan'], FILTER_SANITIZE_STRING);
+    $kelas = filter_var($_POST['kelas'], FILTER_SANITIZE_STRING);
+
+    $query = mysqli_query($connect, "UPDATE tmahasiswa set NIM = '$nim', NamaMahasiswa = '$nama', IdJurusan = '$jurusan', IdKelas = '$kelas' where IdMahasiswa = '$idm'");
+    echo ($query) ? "<script>alert('Berhasil Update Data Mahasiswa'); window.location = 'dashboard.php?pg=mahasiswa&msg=editms';</script>" 
+    : "<script>alert('Gagal Update Data Mahasiswa'); window.location = 'dashboard.php?pg=mahasiswa&msg=editmg';</script>";
+}
 
 if(isset($_GET['mhs']))
 {
@@ -184,8 +197,8 @@ if(isset($_POST['tambah_makul']))
     $NamaMakul = filter_var($_POST['NamaMakul'],FILTER_SANITIZE_STRING);
     
     $query = mysqli_query($connect, "INSERT into tmakul values('','$KdMakul','$NamaMakul','$smt','$jurusan')");
-    echo ($query) ? "<script>alert('Berhasil Tambah Data Mata Kuliah'); window.location = 'dashboard.php?pg=mmakul&msg=ts';</script>" 
-    : "<script>alert('Gagal Tambah Data Mahasiswa'); window.location = 'dashboard.php?pg=mmakul&msg=tg';</script>";
+    echo ($query) ? "<script>alert('Berhasil Tambah Data Mata Kuliah'); window.history.go(-1);</script>" 
+    : "<script>alert('Gagal Tambah Data Mahasiswa'); window.history.go(-1);</script>";
 
 }
 if(isset($_POST['edit_makul']))
@@ -199,7 +212,41 @@ if(isset($_POST['edit_makul']))
     
     $query = mysqli_query($connect, "UPDATE tmakul set IdJurusan = '$jurusan', Semester = '$smt', KdMakul = '$KdMakul', NamaMakul = '$NamaMakul' where IdMakul = '$mid'");
     echo ($query) ? "<script>alert('Berhasil Update Data Mata Kuliah'); window.location = 'dashboard.php?pg=mmakul&msg=es';</script>" 
-    : "<script>alert('Gagal Update Data Mahasiswa'); window.location = 'dashboard.php?pg=mmakul&msg=eg';</script>";
+    : "<script>alert('Gagal Update Data Mata Kuliah'); window.location = 'dashboard.php?pg=mmakul&msg=eg';</script>";
 
+}
+
+if(isset($_GET['delt']))
+{
+    $tid = $_GET['delt'];
+    mysqli_query($connect,"UPDATE ttest set status=0 where id_test='$tid'");
+    $query = mysqli_query($connect,"DELETE from ttranskrip_nilai where id_test='$tid'");
+    echo ($query) ? "<script>alert('Berhasil Hapus Data Test'); window.location = 'dashboard.php?pg=makul';</script>" 
+    : "<script>alert('Gagal Hapus Data Test'); window.location = 'dashboard.php?pg=makul';</script>";
+
+}
+
+// validasi nilai 0
+if(isset($_GET['valid']))
+{
+    if($_GET['valid']=="v")
+    {
+        $nim = $_GET['idm'];
+        $kelas = $_GET['idk'];
+        $pid = $_GET['pid'];
+        $testQ = mysqli_query($connect,"SELECT * from ttest where id_kelas='$kelas' and id_periode = '$pid'");
+        while($test = mysqli_fetch_array($testQ))
+        {
+            $makul = $test['makul'];
+            $idt = $test['id_test'];
+            $transQ = mysqli_query($connect, "SELECT *from ttranskrip_nilai where nim = '$nim' and id_test='$idt'");
+            if(!mysqli_num_rows($transQ)>0)
+            {
+                $query = mysqli_query($connect,"INSERT into ttranskrip_nilai values ('','$idt','$kelas','$pid','$makul','$nim',0)");
+                echo ($query) ? "<script>alert('Berhasil Validasi Data'); window.location = 'dashboard.php?pg=transkrip&act=nol&idk=$kelas';</script>" 
+                : "<script>alert('Gagal Validasi Data'); window.location = 'dashboard.php?pg=transkrip&act=nol&idk=$kelas';</script>";
+            }
+        }
+    }
 }
 ?>

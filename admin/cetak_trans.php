@@ -11,6 +11,11 @@ else
 $idk = $_GET['idk'];
 $pid = $_GET['pid'];
 $pdf = new FPDF('P', 'mm', 'A4');
+$perdQ = mysqli_query($connect, "SELECT * from tperiode where id_periode = '$pid'");
+$perd = mysqli_fetch_array($perdQ);
+$thn = $perd['tahun']; 
+$jenis = ($perd['jenis_tes']=="1")? "UTS" :"UAS";
+$periode = $thn." - ".$jenis;
 $mhsQ = mysqli_query($connect, "SELECT tmahasiswa.*, tkelas.NamaKelas FROM tmahasiswa 
 left join tkelas on tkelas.IdKelas = tmahasiswa.IdKelas
 WHERE tmahasiswa.IdKelas = '$idk'");
@@ -25,7 +30,7 @@ while ($mhs = mysqli_fetch_array($mhsQ)) {
     if($transQ !== null and mysqli_num_rows($transQ) > 0) {
     $pdf->AddPage();
     $pdf->setFont('Times', 'B', 18);
-    $pdf->cell($pdf->GetPageWidth(),6, 'Rekap Nilai  '. $kelass, 0, 1);
+    $pdf->cell($pdf->GetPageWidth(),6, 'Rekap Nilai  '. $kelass." - " .$periode, 0, 1);
     $pdf->Ln(10);
     $pdf->setFont('Times', '', 12);
     $pdf->cell(20, 3, 'NIM', 0, 0);
@@ -102,7 +107,7 @@ while ($mhs = mysqli_fetch_array($mhsQ)) {
                 $huruf="A";
             }
             $pdf->cell(10, 7, $noo, 1, 0, 'C');
-            $pdf->cell(80, 7, $makulss, 1, 0, 'C');
+            $pdf->cell(80, 7, $makuls, 1, 0, 'C');
             $pdf->cell(20, 7, $nilai, 1, 0, 'C');
             $pdf->cell(20, 7, $mutu, 1, 0, 'C');
             $pdf->cell(20, 7, $huruf, 1, 0, 'C');
