@@ -10,10 +10,12 @@ else
 {
 $idk = $_GET['idk'];
 $pid = $_GET['pid'];
+$jn= $_GET['jn'];
+$taid = $_GET['taid'];
 $pdf = new FPDF('P', 'mm', 'A4');
-$perdQ = mysqli_query($connect, "SELECT * from tperiode where id_periode = '$pid'");
+$perdQ = mysqli_query($connect, "SELECT tperiode.*, ttahun.nama_ta from tperiode left join ttahun on ttahun.id_ta = tperiode.tahun where tperiode.id_periode = '$pid'");
 $perd = mysqli_fetch_array($perdQ);
-$thn = $perd['tahun']; 
+$thn = $perd['nama_ta']; 
 $jenis = ($perd['jenis_tes']=="1")? "UTS" :"UAS";
 $periode = $thn." - ".$jenis;
 $mhsQ = mysqli_query($connect, "SELECT tmahasiswa.*, tkelas.NamaKelas FROM tmahasiswa 
@@ -26,7 +28,7 @@ while ($mhs = mysqli_fetch_array($mhsQ)) {
     $kelass = $mhs['NamaKelas'];
     $transQ = mysqli_query($connect,"SELECT ttranskrip_nilai.* , tmakul.NamaMakul
     FROM ttranskrip_nilai left join tmakul on tmakul.IdMakul = ttranskrip_nilai.id_makul
-    WHERE id_kelas='$idk' AND id_periode='$pid' AND nim='$nim'");
+    WHERE id_kelas='$idk' AND jenis='$jn' AND id_ta = '$taid'AND nim='$nim'");
     if($transQ !== null and mysqli_num_rows($transQ) > 0) {
     $pdf->AddPage();
     $pdf->setFont('Times', 'B', 18);

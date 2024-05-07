@@ -8,6 +8,21 @@ $(document).ready(function() {
             return false;
         }
     });
+
+    $('.edit-link').on('click', function () {
+        // Get data attributes from the clicked anchor
+        var idm = $(this).data('idm');
+        var mkl = $(this).data('makul');
+        var nilai = $(this).data('nilai');
+        var jenis = $(this).data('jenis');
+        var idtr = $(this).data('idtr');
+        (jenis==1) ? $('.modal-title').html('Edit Nilai UTS') : null;
+        (jenis==2) ? $('.modal-title').html('Edit Nilai UAS') : null;
+        (jenis==3) ? $('.modal-title').html('Edit Nilai UPRAK') : null;
+        $('#edn_mkl').val(mkl)
+        $('#edn_nl').val(nilai)
+        $('#edn_idtr').val(idtr)
+    });
 })
 $("#menu-toggle").click(function(e) {
     e.preventDefault();
